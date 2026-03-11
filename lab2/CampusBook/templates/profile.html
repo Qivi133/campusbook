@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心 - CampusBook{% endblock %}
+
+{% block content %}
+<div class="profile-header">
+    <h1>欢迎, {{ current_user.username }}!</h1>
+    <p>邮箱: {{ current_user.email }}</p>
+    <p>注册时间: {{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <div class="number">{{ current_user.books|length }}</div>
+            <div class="label">发布的书籍</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">{{ current_user.orders|length }}</div>
+            <div class="label">购买订单</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">{{ current_user.sent_messages|length + current_user.received_messages|length }}</div>
+            <div class="label">消息总数</div>
+        </div>
+    </div>
+</div>
+
+<div class="auth-form" style="max-width: 600px;">
+    <h1>编辑资料</h1>
+    <form method="POST" action="{{ url_for('profile') }}">
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+        </div>
+        <div class="form-group">
+            <label for="email">邮箱</label>
+            <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">手机号</label>
+            <input type="text" id="phone" name="phone" value="{{ current_user.phone or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="new_password">新密码 (留空则不修改)</label>
+            <input type="password" id="new_password" name="new_password">
+        </div>
+        <button type="submit" class="btn-submit">保存修改</button>
+    </form>
+</div>
+{% endblock %}

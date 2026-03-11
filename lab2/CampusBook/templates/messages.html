@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}消息中心 - CampusBook{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">消息中心</h2>
+
+<div class="tabs">
+    <div class="tab active">收到的消息</div>
+    <div class="tab">发送的消息</div>
+</div>
+
+<div id="receivedMessages">
+    {% if received %}
+    <div class="message-list">
+        {% for msg in received %}
+        <div class="message-item {% if not msg.is_read %}unread{% endif %}" data-id="{{ msg.id }}">
+            <div class="avatar">{{ msg.sender.username[0].upper() }}</div>
+            <div class="content">
+                <div class="sender">{{ msg.sender.username }}</div>
+                <div class="text">{{ msg.content }}</div>
+                {% if msg.book %}
+                <div class="book-ref">相关书籍: <a href="{{ url_for('book_detail', book_id=msg.book.id) }}">{{ msg.book.title }}</a></div>
+                {% endif %}
+                <div class="time">{{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h2>暂无收到的消息</h2>
+    </div>
+    {% endif %}
+</div>
+
+<div id="sentMessages" style="display: none;">
+    {% if sent %}
+    <div class="message-list">
+        {% for msg in sent %}
+        <div class="message-item">
+            <div class="avatar">{{ msg.receiver.username[0].upper() }}</div>
+            <div class="content">
+                <div class="sender">发给: {{ msg.receiver.username }}</div>
+                <div class="text">{{ msg.content }}</div>
+                {% if msg.book %}
+                <div class="book-ref">相关书籍: <a href="{{ url_for('book_detail', book_id=msg.book.id) }}">{{ msg.book.title }}</a></div>
+                {% endif %}
+                <div class="time">{{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h2>暂无发送的消息</h2>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        if (index === 0) {
+            document.getElementById('receivedMessages').style.display = 'block';
+            document.getElementById('sentMessages').style.display = 'none';
+        } else {
+            document.getElementById('receivedMessages').style.display = 'none';
+            document.getElementById('sentMessages').style.display = 'block';
+        }
+    });
+});
+
+document.querySelectorAll('.message-item[data-id]').forEach(item => {
+    item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        fetch(`/message/${id}/read`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        }).then(() => {
+            item.classList.remove('unread');
+        });
+    });
+});
+</script>
+{% endblock %}

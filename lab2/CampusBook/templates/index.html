@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - CampusBook{% endblock %}
+
+{% block content %}
+<div class="search-filter">
+    <form class="search-form" method="GET" action="{{ url_for('index') }}">
+        <input type="text" name="search" placeholder="搜索书名或作者..." value="{{ request.args.get('search', '') }}">
+        <select name="category">
+            <option value="">全部分类</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="min_price" placeholder="最低价" value="{{ request.args.get('min_price', '') }}">
+        <input type="number" name="max_price" placeholder="最高价" value="{{ request.args.get('max_price', '') }}">
+        <select name="sort">
+            <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>最新发布</option>
+            <option value="price_asc" {% if request.args.get('sort') == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+            <option value="price_desc" {% if request.args.get('sort') == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+        </select>
+        <button type="submit">搜索</button>
+    </form>
+</div>
+
+<h2 style="margin-bottom: 20px;">在售书籍</h2>
+
+{% if books.items %}
+<div class="books-grid">
+    {% for book in books.items %}
+    <a href="{{ url_for('book_detail', book_id=book.id) }}" class="book-card">
+        {% if book.image_url %}
+        <img src="{{ url_for('static', filename='uploads/' + book.image_url) }}" alt="{{ book.title }}">
+        {% else %}
+        <img src="{{ url_for('static', filename='uploads/no-image.png') }}" alt="{{ book.title }}">
+        {% endif %}
+        <div class="book-info">
+            <div class="book-title">{{ book.title }}</div>
+            <div class="book-author">{{ book.author or '未知作者' }}</div>
+            <div class="book-price">¥{{ book.price }}</div>
+            <span class="book-category">{{ book.category or '其他' }}</span>
+            <span class="book-status {{ book.status }}">{{ '在售' if book.status == 'available' else '已售' }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if books.pages > 1 %}
+<div class="pagination">
+    {% if books.has_prev %}
+    <a href="{{ url_for('index', page=books.prev_num, category=request.args.get('category'), search=request.args.get('search'), min_price=request.args.get('min_price'), max_price=request.args.get('max_price'), sort=request.args.get('sort')) }}">上一页</a>
+    {% endif %}
+    
+    {% for p in range(1, books.pages + 1) %}
+        {% if p >= books.page - 2 and p <= books.page + 2 %}
+        <a href="{{ url_for('index', page=p, category=request.args.get('category'), search=request.args.get('search'), min_price=request.args.get('min_price'), max_price=request.args.get('max_price'), sort=request.args.get('sort')) }}" {% if p == books.page %}class="active"{% endif %}>{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if books.has_next %}
+    <a href="{{ url_for('index', page=books.next_num, category=request.args.get('category'), search=request.args.get('search'), min_price=request.args.get('min_price'), max_price=request.args.get('max_price'), sort=request.args.get('sort')) }}">下一页</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <h2>暂无在售书籍</h2>
+    <p>快去发布第一本二手书吧！</p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('new_book') }}" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">发布书籍</a>
+    {% else %}
+    <a href="{{ url_for('register') }}" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">立即注册</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

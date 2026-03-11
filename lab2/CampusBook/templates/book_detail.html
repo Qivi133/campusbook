@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - CampusBook{% endblock %}
+
+{% block content %}
+<div class="book-detail">
+    <div class="book-detail-content">
+        <div class="book-image">
+            {% if book.image_url %}
+            <img src="{{ url_for('static', filename='uploads/' + book.image_url) }}" alt="{{ book.title }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/no-image.png') }}" alt="{{ book.title }}">
+            {% endif %}
+        </div>
+        <div class="book-info">
+            <h1>{{ book.title }}</h1>
+            <p class="author">作者: {{ book.author or '未知' }}</p>
+            <p class="price">¥{{ book.price }}</p>
+            
+            <div class="info-item">
+                <label>分类:</label> {{ book.category or '其他' }}
+            </div>
+            <div class="info-item">
+                <label>ISBN:</label> {{ book.isbn or '暂无' }}
+            </div>
+            <div class="info-item">
+                <label>新旧程度:</label> {{ book.condition or '未知' }}
+            </div>
+            <div class="info-item">
+                <label>卖家:</label> {{ book.seller.username }}
+            </div>
+            <div class="info-item">
+                <label>发布时间:</label> {{ book.created_at.strftime('%Y-%m-%d') }}
+            </div>
+            
+            <div class="description">
+                <h3>书籍描述</h3>
+                <p>{{ book.description or '暂无描述' }}</p>
+            </div>
+            
+            {% if current_user.is_authenticated %}
+                {% if current_user.id == book.seller_id %}
+                <div class="book-actions">
+                    <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-secondary">编辑</a>
+                    <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}" style="display: inline;" onsubmit="return confirm('确定要删除这本书吗？');">
+                        <button type="submit" class="btn btn-danger">删除</button>
+                    </form>
+                </div>
+                {% elif book.status == 'available' %}
+                <div class="book-actions">
+                    <form method="POST" action="{{ url_for('add_to_cart', book_id=book.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-buy">加入购物车</button>
+                    </form>
+                    <button class="btn btn-secondary" onclick="document.getElementById('messageModal').style.display='block'">联系卖家</button>
+                </div>
+                {% else %}
+                <div class="book-actions">
+                    <span class="btn" style="background: #ccc; cursor: not-allowed;">已售出</span>
+                </div>
+                {% endif %}
+            {% else %}
+                {% if book.status == 'available' %}
+                <div class="book-actions">
+                    <a href="{{ url_for('login') }}" class="btn btn-buy">登录后购买</a>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if current_user.is_authenticated and current_user.id != book.seller_id and book.status == 'available' %}
+<div id="messageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%;">
+        <h2 style="margin-bottom: 20px;">联系卖家</h2>
+        <form method="POST" action="{{ url_for('send_message', book_id=book.id) }}">
+            <div class="form-group">
+                <label for="content">留言内容</label>
+                <textarea id="content" name="content" rows="5" required placeholder="请输入您想对卖家说的话..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">发送消息</button>
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('messageModal').style.display='none'">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}我的订单 - CampusBook{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">我的订单</h2>
+
+<div class="tabs">
+    <div class="tab active">我购买的</div>
+    <div class="tab">我出售的</div>
+</div>
+
+<div id="buyOrders">
+    {% if buy_orders %}
+    <div class="order-list">
+        {% for order in buy_orders %}
+        <div class="order-item">
+            {% if order.book.image_url %}
+            <img src="{{ url_for('static', filename='uploads/' + order.book.image_url) }}" alt="{{ order.book.title }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/no-image.png') }}" alt="{{ order.book.title }}">
+            {% endif %}
+            <div class="item-info">
+                <h3><a href="{{ url_for('book_detail', book_id=order.book.id) }}">{{ order.book.title }}</a></h3>
+                <p>卖家: {{ order.book.seller.username }}</p>
+                <p>下单时间: {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% if order.contact_message %}
+                <p>留言: {{ order.contact_message }}</p>
+                {% endif %}
+            </div>
+            <div class="item-price">¥{{ order.total_price }}</div>
+            <div style="margin-left: 20px;">
+                {% if order.status == 'pending' %}
+                <span class="btn" style="background: #ffc107; color: #000;">待确认</span>
+                {% elif order.status == 'completed' %}
+                <span class="btn" style="background: #28a745; color: #fff;">已完成</span>
+                {% elif order.status == 'cancelled' %}
+                <span class="btn" style="background: #dc3545; color: #fff;">已取消</span>
+                {% endif %}
+                
+                {% if order.status == 'pending' %}
+                <form method="POST" action="{{ url_for('confirm_order', order_id=order.id) }}" style="display: inline; margin-top: 10px;">
+                    <button type="submit" class="btn btn-buy" style="padding: 8px 20px;">确认收货</button>
+                </form>
+                <form method="POST" action="{{ url_for('cancel_order', order_id=order.id) }}" style="display: inline; margin-top: 10px;" onsubmit="return confirm('确定要取消订单吗？');">
+                    <button type="submit" class="btn btn-outline" style="padding: 8px 20px;">取消订单</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h2>暂无购买记录</h2>
+        <p>快去选购喜欢的书籍吧！</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">浏览书籍</a>
+    </div>
+    {% endif %}
+</div>
+
+<div id="sellOrders" style="display: none;">
+    {% if sell_orders %}
+    <div class="order-list">
+        {% for order in sell_orders %}
+        <div class="order-item">
+            {% if order.book.image_url %}
+            <img src="{{ url_for('static', filename='uploads/' + order.book.image_url) }}" alt="{{ order.book.title }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/no-image.png') }}" alt="{{ order.book.title }}">
+            {% endif %}
+            <div class="item-info">
+                <h3>{{ order.book.title }}</h3>
+                <p>买家: {{ order.buyer.username }}</p>
+                <p>售出时间: {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                {% if order.contact_message %}
+                <p>买家留言: {{ order.contact_message }}</p>
+                {% endif %}
+            </div>
+            <div class="item-price">¥{{ order.total_price }}</div>
+            <div style="margin-left: 20px;">
+                {% if order.status == 'pending' %}
+                <span class="btn" style="background: #ffc107; color: #000;">待确认</span>
+                {% elif order.status == 'completed' %}
+                <span class="btn" style="background: #28a745; color: #fff;">已完成</span>
+                {% elif order.status == 'cancelled' %}
+                <span class="btn" style="background: #dc3545; color: #fff;">已取消</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h2>暂无出售记录</h2>
+        <p>快去发布书籍吧！</p>
+        <a href="{{ url_for('new_book') }}" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">发布书籍</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        if (index === 0) {
+            document.getElementById('buyOrders').style.display = 'block';
+            document.getElementById('sellOrders').style.display = 'none';
+        } else {
+            document.getElementById('buyOrders').style.display = 'none';
+            document.getElementById('sellOrders').style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}我的书籍 - CampusBook{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">
+    我的书籍
+    <a href="{{ url_for('new_book') }}" class="btn btn-primary" style="float: right;">发布新书</a>
+</h2>
+
+{% if books %}
+<div class="books-grid">
+    {% for book in books %}
+    <a href="{{ url_for('book_detail', book_id=book.id) }}" class="book-card">
+        {% if book.image_url %}
+        <img src="{{ url_for('static', filename='uploads/' + book.image_url) }}" alt="{{ book.title }}">
+        {% else %}
+        <img src="{{ url_for('static', filename='uploads/no-image.png') }}" alt="{{ book.title }}">
+        {% endif %}
+        <div class="book-info">
+            <div class="book-title">{{ book.title }}</div>
+            <div class="book-author">{{ book.author or '未知作者' }}</div>
+            <div class="book-price">¥{{ book.price }}</div>
+            <span class="book-category">{{ book.category or '其他' }}</span>
+            <span class="book-status {{ book.status }}">{{ '在售' if book.status == 'available' else '已售' }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>你还没有发布任何书籍</h2>
+    <p>快去发布第一本二手书吧！</p>
+    <a href="{{ url_for('new_book') }}" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">发布书籍</a>
+</div>
+{% endif %}
+{% endblock %}

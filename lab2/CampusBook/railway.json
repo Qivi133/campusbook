@@ -1,0 +1,10 @@
+{
+  "build": {
+    "builder": "PYTHON",
+    "python": {
+      "version": "3.9",
+      "install": ["pip install -r requirements.txt"]
+    }
+  },
+  "start": "python app.py"
+}
